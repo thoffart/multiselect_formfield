@@ -20,6 +20,7 @@ class MultiSelectFormField extends FormField<dynamic> {
   final Widget trailing;
   final String okButtonLabel;
   final String cancelButtonLabel;
+  final bool enableSearchBar;
 
   MultiSelectFormField({
     FormFieldSetter<dynamic> onSaved,
@@ -41,57 +42,41 @@ class MultiSelectFormField extends FormField<dynamic> {
     this.close,
     this.okButtonLabel = 'OK',
     this.cancelButtonLabel = 'CANCEL',
-    this.trailing
+    this.trailing,
+    this.enableSearchBar = false,
   }) : super(
     onSaved: onSaved,
     validator: validator,
     initialValue: initialValue,
     autovalidate: autovalidate,
     builder: (FormFieldState<dynamic> state) {
-      List<Widget> _buildSelectedOptions(dynamic values, state) {
-        final List<Widget> selectedOptions = [];
-        if (values != null) {
-          values.forEach((item) {
-            final existingItem = dataSource.singleWhere((itm) => itm[valueField] == item, orElse: () => null);
-            selectedOptions.add(
-              Chip(
-                label: Text(existingItem[textField], overflow: TextOverflow.ellipsis),
-                backgroundColor: Colors.white,
-                shape:  RoundedRectangleBorder(
-                  side: BorderSide(color: Color.fromRGBO(3, 78, 162, 1), width: 1),
-                  borderRadius: BorderRadius.circular(40.0),
-                ),
-              )
-            );
-          });
-        }
-        return selectedOptions;
-      }
+      List<Widget> _buildSelectedOptions(List<dynamic> values, state) => (value != null)
+      ? values
+        .map((item) => dataSource.singleWhere((itm) => itm[valueField] == item, orElse: () => null))
+        .map((item) => Chip(
+          label: Text(item[textField], overflow: TextOverflow.ellipsis),
+          backgroundColor: Colors.white,
+          shape:  RoundedRectangleBorder(
+            side: BorderSide(color: Color.fromRGBO(3, 78, 162, 1), width: 1),
+            borderRadius: BorderRadius.circular(40.0),
+          ),
+        )).toList()
+      : null;
       return InkWell(
         onTap: () async {
-          List initialSelected = value;
-          if (initialSelected == null) {
-            initialSelected = List();
-          }
-
-          final items = List<MultiSelectDialogItem<dynamic>>();
-          dataSource.forEach((item) {
-            items.add(MultiSelectDialogItem(item[valueField], item[textField]));
-          });
-
-          List selectedValues = await showDialog<List>(
+          final List selectedValues = await showDialog<List>(
             context: state.context,
             builder: (BuildContext context) {
               return MultiSelectDialog(
                 title: titleText,
                 okButtonLabel: okButtonLabel,
                 cancelButtonLabel: cancelButtonLabel,
-                items: items,
-                initialSelectedValues: initialSelected,
+                items: dataSource.map((item) => MultiSelectDialogItem(item[valueField], item[textField])).toList(),
+                initialSelectedValues: value ?? List(),
+                enableSearchBar: enableSearchBar,
               );
             },
           );
-
           if (selectedValues != null) {
             state.didChange(selectedValues);
             state.save();
@@ -153,7 +138,6 @@ class MultiSelectFormField extends FormField<dynamic> {
                   ],
                 ),
               ),
-              
             ],
           ),
         ),

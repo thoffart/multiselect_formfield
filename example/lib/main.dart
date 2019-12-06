@@ -60,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     if (value == null || value.length == 0) {
                       return 'Please select one or more options';
                     }
+                    return null;
                   },
                   dataSource: [
                     {
