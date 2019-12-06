@@ -92,23 +92,28 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
     return AlertDialog(
       title: Text(widget.title),
       contentPadding: EdgeInsets.only(top: 12.0),
-      content: Column(
-        children: <Widget>[
-          if(widget.enableSearchBar)
-            _searchBar(),
-          Expanded(
-            child: SingleChildScrollView(
-              child: ListTileTheme(
-                contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
-                child: ListBody(
-                  children: (_filterText == null || _filterText == "") 
-                  ? widget.items.map(_buildItem).toList()
-                  : widget.items.map(_buildItemWithFilter).toList(),
-                ),             
+      content: Container(
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            if(widget.enableSearchBar)
+              _searchBar(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: ListTileTheme(
+                  contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
+                  child: ListBody(
+                    children: (_filterText == null || _filterText == "") 
+                    ? widget.items.map(_buildItem).toList()
+                    : _filterItens(widget.items),
+                  ),             
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       actions: <Widget>[
         FlatButton(
@@ -121,6 +126,14 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
         )
       ],
     );
+  }
+
+  List<Widget> _filterItens(List<MultiSelectDialogItem<V>> items) {
+    final List filteredItems = items.map(_buildItemWithFilter).toList()..removeWhere((value) => value == null);
+    return (filteredItems.length != 0)
+      ? filteredItems
+      : List.from([SizedBox(height: 40,),Center(child: Text('Nada encontrado!'),)]);
+    
   }
 
   Widget _buildItem(MultiSelectDialogItem<V> item) {
@@ -140,6 +153,6 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
         controlAffinity: ListTileControlAffinity.leading,
         onChanged: (checked) => _onItemCheckedChange(item.value, checked),
       )
-     : new Container();
+     : null;
   }
 }
